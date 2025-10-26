@@ -1,0 +1,193 @@
+---
+title: "Qiime fecal tutorial"
+output:
+  github_document:
+    toc: true
+    toc_flot: true
+    theme: united
+---
+
+pandoc qiime_orchard_fecal_tutorial.md -o qiime_fecal_tutorial.html
+
+quarto render qiime_orchard_fecal_tutorial.md
+
+# **Qiime 2: Orchard Fecal sampling**
+
+*Full, original notes for this document can be found in getting_started_qiime.txt*\
+\## Getting started
+
+Needed programs: putty, filezilla, sublime, rmarkdown
+
+-   Filezilla moves files between servers and personal computer\
+-   Sublime is a .txt reader/editor\
+-   Putty connects us to the computer servers\
+-   [Information on Rmarkdown can be found here](https://nt246.github.io/NTRES-6100-data-science/lesson2-rmarkdown-github.html)
+
+### How to use Putty
+
+-   You will be using Putty to connect to the server- aka, every time you need to use Qiime or access your data!
+
+1.  Open putty\
+2.  Fill out type
+
+-   If accessing from outside eduroam: `ass245@cbsumma##.biohpc.cornell.edu`\
+-   If accessing from eduroam: `cbsumma##@biohpc.cornell.edu`. Then, login with username and password
+
+### How to use Filezilla
+
+-   Under host, enter: <sftp://cbsumma04.biohpc.cornell.edu>\
+-   Under username and password, enter your BioHPC username and password\
+-   Drag any files you need between your server and computer
+
+### **General notes**
+
+-   **Take notes as you go!**
+    -   For example: How many sequences are in the original file vs after denoising? Are blanks showing up negative? Did you change a parameter? Did you notice anything unusual?\
+    -   In my case: most of the goldfinch samples are dropped when rarefying to 2,000, but most of the song sparrow samples are kept. Also, one blank showed up as having insect DNA, but that was removed during the filtering step.
+-   thanks to Gemma, Bronwyn, and Kimberly!\
+-   [Gemma's code](https://github.com/GemmaClucas/Mountain_Chickadee_diets/blob/main/Qiime_commands_2022samples.md) was the basis for everything
+-   make sure you have an idea of what each command does, as well as each of its arguments
+    -   For example: .qzv files are often going to be extremely helpful; using [view.qiime2.org](view.qiime2.org), you can see what is happening with your data. Generally you should check what it looks like every time you have one\
+-   If you are ever confused about why we need a step in the Qiime pipeline, review Bronwyn's figure
+
+![This image goes along with several others that Bronwyn created. They illustrate what the data we are processing represents](Sequence_outputs_figure.png)
+
+### **Every time you start a session, you must...**
+
+1.  go to the work directory 'cd /workdir'\
+2.  make a personal directory 'mkdir ass245' in the server's workdir folder\
+3.  copy any needed files to the work directory 'cp -r /home/lc736_0001/orchards/2024/reads /workdir/ass245' *the code is set to copy all files from the reads folder, but if you only need one or two files it will be better to only copy those*\
+4.  'ls 2024/reads' to check that needed files are there\
+5.  start the Qiime2 environment `export LC_ALL=en_US.utf-8 export LANG=en_US.utf-8 source /programs/miniconda3/bin/activate qiime2-amplicon-2024.10`
+
+### **Helpful commands**
+
+-   `cd` = change directory\
+-   `ls` = list\
+-   `ls -l` = list properties of\
+-   `mkdir` = make directory\
+-   `mv` = move or rename\
+-   `-r` = reference files within that folder\
+-   `pwd` = print working directory\
+-   `&` = process command in the background **this is very important!** It allows you to run `htop` to see if Qiime is actually working
+-   `cp` = copy , e.g. 'cp PC\*.fastq.gz /home/lc736_0001/Kimberly/'\
+-   `top` = whats running\
+-   `htop` = use when computing. what is currently running? use Q to exit\
+-   `lh` gives human readable; use it to check file size to make sure everything has copied.\
+-   `nohup` = "no hang up"; allows you to close your laptop while the command keeps running. outputs a nohup.out file which you can open in a text editor afterwards to see what happened while you were away.
+-   `control C` = escape\
+-   `control shift c` = copy into linnux (windows)\
+-   `shift+insert` = paste into linnux (windows)\
+-   `\` = new line\
+-   `..` = look in the folder that is one behind/above me\
+-   use the up arrow to call a previous command
+-   use enter to run a line of code\
+-   is the server stuck and you forgot to use htop? open putty in a new window and use htop from that screen
+
+## **Now, let's use Qiime!**
+
+## 1. Import your data
+
+-   Here, you are importing your reads into a Qiime artifact.\
+-   You will first need to make a wrangled data document
+    -   This document, created in Excel and then converted to .txt will have headers of sample-id, forward-absolute-filepath, reverse-absolute-filepath\
+    -   Utilize concatonate in Excel to make file paths. Make sure no values are numeric\
+    -   Ensure that each sample ID is unique\
+    -   Ensure the file path is correct; observe nodes and folders carefully
+
+`qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'  --input-path 2024_wrangled_data.txt    --input-format PairedEndFastqManifestPhred33V2  --output-path demux_plate1.qza`
+
+-   Then, copy the output file back to the home directory and check that the file is there\
+    `cp demux_plate1.qza /home/lc736_0001/orchards/2024/`
+
+`ls /home/lc736_0001/orchards/2024/`
+
+## 2. Demultiplex your data.
+
+`qiime demux summarize \--i-data demux_plate1.qza \--o-visualization demux_plate1.qzv`
+
+-   Then, transfer the file back to your computer via filezilla. Open it in (view.qiime2.org). Make sure it looks reasonable (sorry you gotta look online for what reasonable looks like!).
+
+## 3. Trim reverse and front ends
+
+-   
+
+    ![This figure made by Bronwyn illustrates the processes of trimming and denoising](Trim&denoise_figure.png)
+
+Trime reverse ends\
+`qiime cutadapt trim-paired \--i-demultiplexed-sequences demux_plate1.qza \ --p-adapter-f GGATTTGGAAATTGATTAGTWCC \--p-adapter-r CCAATATCTTTATGATTTGTTGACC \--o-trimmed-sequences trimd_plate1.qza \--verbose > cutadapt_out_plate1.txt`
+
+-   Check on that text file! `less cutadapt_out_plate1.txt`
+-   You want to have 82-84% for the total written (filtered) basepairs
+-   You can check more specifics using `grep "Total written (filtered):" cutadapt_out_plate1.txt`
+
+Trim front ends\
+`qiime cutadapt trim-paired \--i-demultiplexed-sequences trimd_plate1.qza \--p-front-f GGTCAACAAATCATAAAGATATTGG \--p-front-r GGWACTAATCAATTTCCAAATCC  \--o-trimmed-sequences trimd2_plate1.qza \--verbose > cutadapt_out2_plate1.txt`
+
+-   Use grep again "Total written (filtered):" `cutadapt_out2_plate1.txt`\
+-   This value should be \~88%
+    -   Why do we have less leeway for the front (5') ends? The reverse (3') ends will inherently have more variability as the primer runs out...
+
+## 4. Denoise
+
+-   Denoising means you are locating sequencing errors.\
+-   More depth to the sequencing leads to less loss at this step.\
+-   Higher depth in sequencing means that that region of DNA has been sequenced more times.
+
+`qiime dada2 denoise-paired \--i-demultiplexed-seqs trimd2_plate1.qza \--p-trunc-len-f 130 \--p-trunc-len-r 130 \--p-trim-left-f 0 \--p-trim-left-r 0 \--p-min-overlap 50 \--p-n-threads 12 \--o-representative-sequences rep-seqs_plate1 \--o-table table_plate1 \--o-denoising-stats denoise_plate1`
+
+-   The threads are the number of computer cores (use more to run faster, but no more than the computer has)\
+-   Representative sequences = real sequences\
+-   Table = count of those sequences (what is the number of different sequences?)\
+-   denoising-stats = record of how well it was denoised
+
+Then, use the metadata command\
+`qiime metadata tabulate\--m-input-file denoise_plate1.qza\--o-visualization denoise_plate1.qzv`
+
+**The next lines of code are to view rep-seqs and a table. However, we need to make a metadata file first.**
+
+-   Include columns of #SampleID (no spaces) (should correspond to qiime names), Plate, Species (that sample came from), Age, Type (sample/mock/eb/field blank); any metadata collected during fecal sample collection
+    -   Add a second row which says whether each column is categorical or numeric. However, for the sampleID column, the entry for that row is #q2:types
+        -   #q2:types indicates that the row is a comment directive. Subsequent cells may contain the values categorical or numeric\
+    -   Use filezilla to bring the finished metadata .txt file to the workdir
+
+View rep-seqs and table\
+`qiime feature-table tabulate-seqs \--i-data rep-seqs_plate1.qza \--o-visualization rep-seqs_Plate1`
+
+`qiime feature-table summarize \--i-table table_plate1.qza \--m-sample-metadata-file fecal_sampling_full_metadata.txt \--o-visualization table_plate1`
+
+## 5. Assign taxonomy!
+
+`qiime feature-classifier classify-sklearn \--i-classifier classifier.qza \--i-reads rep-seqs_plate1.qza \--o-classification taxonomy.qza &`
+
+`qiime metadata tabulate \--m-input-file taxonomy.qza \--o-visualization taxonomy.qzv &`
+
+Make barplots.
+
+-   ensure that table_plate1.qza is in the workdir
+
+`qiime taxa barplot \--i-table table_plate1.qza \--i-taxonomy taxonomy.qza \--m-metadata-file fecal_sampling_full_metadata.txt \--o-visualization barplot_before_filtering.qzv`
+
+## 6. Remove non-arthropod reads
+
+`qiime taxa filter-table \--i-table table_plate1.qza \--i-taxonomy taxonomy.qza \--p-include Arthropoda \--o-filtered-table table_Arthropoda.qza &`
+
+`qiime feature-table summarize \--i-table table_Arthropoda.qza \--m-sample-metadata-file fecal_sampling_full_metadata.txt \--o-visualization table_Arthropoda`
+
+## 7. Calculate alpha-rarefaction curves
+
+-   Make sure you really understand why used your numbers in this step.
+
+`qiime taxa collapse \--i-table table_Arthropoda.qza \--i-taxonomy taxonomy.qza \--p-level 7 \--o-collapsed-table table_Arthropoda_collapsed.qza`
+
+-   During this step, we used 7,000 because 30,000 wasn't working\
+-   Then, we looked at the curve produced to decide what range of numbers we want to input. We want the upper range to fall where the curve flattens.\
+-   In other words, we want to maximize read depth while excluding as few samples as possible. `qiime diversity alpha-rarefaction \--i-table table_Arthropoda_collapsed.qza \--m-metadata-file fecal_sampling_full_metadata.txt \--p-min-depth 500 \--p-max-depth 30000 \--o-visualization alpha-rarefaction-500-30000`
+
+## 8. Rarefy and remake barplots
+
+-   Rarefaction normalizes sequencing depth with numbers chosen based on the graph from the previous step. `qiime feature-table rarefy \--i-table table_Arthropoda.qza \--p-sampling-depth 2000 \--o-rarefied-table rarefied_table_Arthropoda_rarefied2000.qza`
+
+`qiime taxa barplot \--i-table rarefied_table_Arthropoda_rarefied2000.qza \--i-taxonomy taxonomy.qza \--m-metadata-file fecal_sampling_full_metadata.txt \--o-visualization barplot_rarefied2000.qzv`
+
+`qiime feature-table summarize \--i-table rarefied_table_Arthropoda_rarefied2000.qza \`
