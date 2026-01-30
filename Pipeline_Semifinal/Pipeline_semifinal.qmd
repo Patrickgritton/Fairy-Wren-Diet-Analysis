@@ -1,0 +1,70 @@
+---
+title: "Pipeline_semifinal"
+format: html
+---
+
+# Fairy-wren Diet Analysis Pipeline: Semifinal Draft
+
+Starting January 30th, 2026
+
+This is a semi-final draft of the diet analysis pipeline made in the pipeline_exploration.qmd file. The purpose of this draft is to ensure the analysis there is valid, reproducible, and legible to others.
+
+# 0. Set up software
+
+First, ensure that you have R studio, PuTTY, and Filezilla installed on the computer.
+
+Next, go to the cornell biohpc website and reserve time on one of the clustered computers. I have found that the medium memory gen1: 24 cores, 128GB RAM computers work well while not being too computationally expensive.
+
+For this analysis, computer used will be: cbsumma07
+
+Login to PuTTY:
+
+Login node: cbsulogin.biohpc.cornell.edu
+
+Computer node: \[COMPUTERNAME\].biohpc.cornell.edu
+
+port: 22
+
+For filezilla:
+
+host = sftp://\[COMPUTERNAME\].biohpc.cornell.edu
+
+username = netID
+
+Password = \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
+
+port = 22
+
+The cluster computer already has QIIME2 installed, though you will need to paste the following string befire the 'qiime' argument of every command
+
+```         
+apptainer exec --bind \$PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif
+```
+
+For example, if you wanted to run the command "qiime info" it would look like this:
+
+```         
+apptainer exec --bind \$PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime info
+```
+
+# 1. Set up working directory
+
+0.  Before starting, you will need to copy the raw reads, the manifest files, and the metadata files into the login node. These were created outside of the pipeline and will be in the github. (except for the reads which will be available upon request.)
+
+    Login with username and password
+
+    Switch to working directory
+
+```         
+cd /workdir
+```
+
+**NOTE: ALWAYS SWITCH TO /WORKDIR BEFORE COMPUTING, OR ELSE YOU WILL MESS UP THE COMPUTER**
+
+Make a directory in /workdir, switch to it
+
+```         
+/mkdir rpg79sf
+
+cd rpg79sf
+```
