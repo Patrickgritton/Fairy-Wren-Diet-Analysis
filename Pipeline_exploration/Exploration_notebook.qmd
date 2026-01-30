@@ -1,0 +1,830 @@
+11/25/2025
+fairywrendiet
+importing plate 1 and 2 seperate
+
+paste this code before each command
+
+New computer: cbsumm29
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif
+
+Activate qiime 
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime info
+```
+```
+ cp -r /home/rpg79/manifest_plate1.txt /workdir/rpg79/
+  cp -r /home/rpg79/manifest_plate2.txt /workdir/rpg79/
+ ```
+
+import plate 1
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'  --input-path  manifest_plate1.txt    --input-format PairedEndFastqManifestPhred33V2  --output-path demux_plate1.qza &
+
+```
+import plate 2
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'  --input-path  manifest_plate2.txt    --input-format PairedEndFastqManifestPhred33V2  --output-path demux_plate2.qza &
+
+```
+```
+ cp -r /workdir/rpg79/demux_plate1.qza /home/rpg79 
+ cp -r /workdir/rpg79/demux_plate2.qza /home/rpg79
+ ```
+
+summarize plate 1
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime demux summarize \
+--i-data demux_plate1.qza \
+--o-visualization demux_plate1.qzv 
+```
+
+Summarize plate 2
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime demux summarize \
+--i-data demux_plate2.qza \
+--o-visualization demux_plate2.qzv 
+```
+```
+ cp -r /workdir/rpg79/demux_plate1.qzv /home/rpg79 
+ cp -r /workdir/rpg79/demux_plate2.qzv /home/rpg79
+ ```
+
+trim 3 end plate 1
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences demux_plate1.qza \
+    --p-adapter-f GGATTTGGAAATTGATTAGTWCC \
+    --p-adapter-r CCAATATCTTTATGATTTGTTGACC \
+    --o-trimmed-sequences trimd_plate1.qza \
+    --verbose > cutadapt_out1_plate1.txt
+```
+
+trim 3 end plate 2
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences demux_plate2.qza \
+    --p-adapter-f GGATTTGGAAATTGATTAGTWCC \
+    --p-adapter-r CCAATATCTTTATGATTTGTTGACC \
+    --o-trimmed-sequences trimd_plate2.qza \
+    --verbose > cutadapt_out1_plate2.txt
+```
+grep 1
+
+```
+grep "Total written (filtered):" cutadapt_out1_plate1.txt
+```
+grep 2
+
+```
+grep "Total written (filtered):" cutadapt_out1_plate2.txt
+```
+nearly everything passed for both, yay!
+
+```
+ cp -r /workdir/rpg79/trimd_plate1.qza /home/rpg79 
+cp -r /workdir/rpg79/cutadapt_out1_plate1.txt /home/rpg79 
+ cp -r /workdir/rpg79/trimd_plate2.qza /home/rpg79
+ cp -r /workdir/rpg79/cutadapt_out1_plate2.txt /home/rpg79 
+ ```
+
+trim 5 end plate 1
+
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences trimd_plate1.qza \
+    --p-front-f GGTCAACAAATCATAAAGATATTGG \
+    --p-front-r GGWACTAATCAATTTCCAAATCC \
+    --o-trimmed-sequences trimd2_plate1.qza \
+    --verbose > cutadapt_out2_plate1.txt
+```
+
+trim 5 end plate 2
+
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences trimd_plate2.qza \
+    --p-front-f GGTCAACAAATCATAAAGATATTGG \
+    --p-front-r GGWACTAATCAATTTCCAAATCC \
+    --o-trimmed-sequences trimd2_plate2.qza \
+    --verbose > cutadapt_out2_plate2.txt
+```
+grep plate 1, 2
+```
+grep "Total written (filtered):" cutadapt_out2_plate1.txt
+```
+
+ mostly 84% with 1 exception
+ 
+grep plate 2, 2
+```
+grep "Total written (filtered):" cutadapt_out2_plate2.txt
+```
+mostly 84%
+```
+cp -r /workdir/rpg79/cutadapt_out2_plate1.txt /home/rpg79 
+cp -r /workdir/rpg79/cutadapt_out2_plate2.txt /home/rpg79 
+```
+
+visualize 1
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime demux summarize \
+--i-data trimd2_plate1.qza \
+--o-visualization trimd2_plate1.qzv
+```
+
+visualize 2
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime demux summarize \
+--i-data trimd2_plate2.qza \
+--o-visualization trimd2_plate2.qzv
+```
+
+```
+ cp -r /workdir/rpg79/trimd2_plate1.qza /home/rpg79 
+cp -r /workdir/rpg79/trimd2_plate1.qzv /home/rpg79 
+ cp -r /workdir/rpg79/trimd2_plate2.qza /home/rpg79
+ cp -r /workdir/rpg79/trimd2_plate2.qzv /home/rpg79 
+ ```
+ 
+denoise plate 1
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime dada2 denoise-paired --i-demultiplexed-seqs trimd2_plate1.qza --p-trunc-len-f 125 --p-trunc-len-r 125 --p-trim-left-f 0 --p-trim-left-r 0 --p-min-overlap 20 --p-n-threads 12 --o-representative-sequences rep-seqs_plate1 --o-table table_plate1 --o-denoising-stats denoise_plate1 --o-base-transition-stats basetransitionplate1.qza
+```
+
+denoise plate 2
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime dada2 denoise-paired --i-demultiplexed-seqs trimd2_plate2.qza --p-trunc-len-f 125 --p-trunc-len-r 125 --p-trim-left-f 0 --p-trim-left-r 0 --p-min-overlap 20 --p-n-threads 12 --o-representative-sequences rep-seqs_plate2 --o-table table_plate2 --o-denoising-stats denoise_plate1 --o-base-transition-stats basetransitionplate2.qza &
+```
+skipping 2 in order to attempt to assign taxonomy before class today (plate 2 done!)
+```
+cp -r /workdir/rpg79/rep-seqs_plate1.qza /home/rpg79
+cp -r /workdir/rpg79/table_plate1.qza /home/rpg79
+cp -r /workdir/rpg79/basetransitionplate1.qza /home/rpg79
+cp -r /workdir/rpg79/rep-seqs_plate2.qza /home/rpg79
+cp -r /workdir/rpg79/table_plate2.qza /home/rpg79
+cp -r /workdir/rpg79/basetransitionplate2.qza /home/rpg79
+```
+bring over tables from home
+```
+cp -r /home/rpg79/table_plate2.qza /workdir/rpg79
+cp -r /home/rpg79/rep-seqs_plate2.qza /workdir/rpg79
+cp -r /home/rpg79/table_plate1.qza /workdir/rpg79
+```
+combine plate 1 and 2!
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table merge \
+  --i-tables table_plate1.qza \
+  --i-tables table_plate2.qza \
+  --p-overlap-method sum \
+  --o-merged-table merged-table.qza &
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table summarize \
+    --i-table merged-table.qza \
+    --m-sample-metadata-file fwmetadata_merged.txt \
+    --o-visualization merged-table.qzv
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table merge-seqs \
+  --i-data rep-seqs_plate1.qza \
+  --i-data rep-seqs_plate2.qza \
+  --o-merged-data merged_rep-seqs.qza
+  
+
+  
+```
+view rep seqs
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table tabulate-seqs \
+  --i-data merged_rep-seqs.qza \
+  --o-visualization merged_rep-seqs.qzv
+```
+```
+cp -r /workdir/rpg79/merged_rep-seqs.qzv /home/rpg79
+cp -r /workdir/rpg79/merged_rep-seqs.qza /home/rpg79
+cp -r /workdir/rpg79/merged-table.qzv /home/rpg79
+```
+
+copy classifiers over
+```
+cp -r /home/rpg79/hbclassifier.qza /workdir/rpg79/
+  cp -r /home/rpg79/nb_anml_fairy_wren_classifier_20251030.qza /workdir/rpg79/
+  ```
+  
+ Assign taxonomy (one command at a time)
+ 
+katherine classifier
+  
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-classifier classify-sklearn --i-classifier nb_anml_fairy_wren_classifier_20251030.qza --i-reads merged_rep-seqs.qza --o-classification kctaxonomy.qza &
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime metadata tabulate --m-input-file kctaxonomy.qza --o-visualization kctaxonomy.qzv
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table merged-table.qza --i-taxonomy kctaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization kcbarplot_before_filtering.qzv
+```
+```
+cp -r /workdir/rpg79/kctaxonomy.qza /home/rpg79
+cp -r /workdir/rpg79/kctaxonomy.qzv /home/rpg79
+cp -r /workdir/rpg79/kcbarplot_before_filtering.qzv /home/rpg79
+```
+hb classifier
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-classifier classify-sklearn --i-classifier hbclassifier.qza --i-reads merged_rep-seqs.qza --o-classification hbtaxonomy.qza &
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime metadata tabulate --m-input-file hbtaxonomy.qza --o-visualization hbtaxonomy.qzv
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table merged-table.qza --i-taxonomy hbtaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization hbbarplot_before_filtering.qzv
+```
+```
+cp -r /workdir/rpg79/hbtaxonomy.qza /home/rpg79
+cp -r /workdir/rpg79/hbtaxonomy.qzv /home/rpg79
+cp -r /workdir/rpg79/hbbarplot_before_filtering.qzv /home/rpg79
+cp -r /workdir/rpg79/merged-table.qza /home/rpg79
+```
+copy stuff back over (had to remake merged-table.qza here because i forgot to copy the qza over)
+```
+cp -r /home/rpg79/kctaxonomy.qza /workdir/rpg79/
+cp -r /home/rpg79/merged-table.qza /workdir/rpg79/
+cp -r /home/rpg79/fwmetadata_merged.txt /workdir/rpg79/
+cp -r /home/rpg79/hbtaxonomy.qza /workdir/rpg79/
+```
+
+
+#Remove non arthropod reads kcclassifier
+```
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa filter-table --i-table merged-table.qza --i-taxonomy kctaxonomy.qza --p-include Arthropoda --o-filtered-table kctable_Arthropoda.qza &
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table summarize --i-table kctable_Arthropoda.qza --m-sample-metadata-file fwmetadata_merged.txt --o-visualization kctable_Arthropoda.qzv &
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table kctable_Arthropoda.qza --i-taxonomy kctaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization kcbarplot_arthropoda.qzv &
+
+```
+(here exclude everything not identified further than insecta using qiime taca filter table)
+
+#Remove non arthropod reads hbclassifier
+```
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa filter-table --i-table merged-table.qza --i-taxonomy hbtaxonomy.qza --p-include Arthropoda --o-filtered-table hbtable_Arthropoda.qza &
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table summarize --i-table hbtable_Arthropoda.qza --m-sample-metadata-file fwmetadata_merged.txt --o-visualization hbtable_Arthropoda.qzv &
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table hbtable_Arthropoda.qza --i-taxonomy hbtaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization hbbarplot_arthropoda.qzv &
+
+```         
+```
+cp -r /workdir/rpg79/kctable_Arthropoda.qza /home/rpg79
+cp -r /workdir/rpg79/kctable_Arthropoda.qzv /home/rpg79
+cp -r /workdir/rpg79/kcbarplot_arthropoda.qzv /home/rpg79
+cp -r /workdir/rpg79/hbtable_Arthropoda.qza /home/rpg79
+cp -r /workdir/rpg79/hbtable_Arthropoda.qzv /home/rpg79
+cp -r /workdir/rpg79/hbbarplot_arthropoda.qzv /home/rpg79
+```
+
+#collapse taxonomy and make alpha rarefaction curves kc
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kctable_Arthropoda.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 7 \
+  --o-collapsed-table kcmerged-table_Arthropoda_collapsed7.qza
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-rarefaction \
+  --i-table kcmerged-table_Arthropoda_collapsed.qza \
+  --m-metadata-file fwmetadata_merged.txt \
+  --p-min-depth 5000 \
+  --p-max-depth 100000 \
+  --o-visualization kcalpha-rarefaction-5000-100000
+  ```
+  
+  #make alpha rarefaction curves hb
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table hbtable_Arthropoda.qza \
+  --i-taxonomy hbtaxonomy.qza \
+  --p-level 7 \
+  --o-collapsed-table hbmerged-table_Arthropoda_collapsed7.qza
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-rarefaction \
+  --i-table hbmerged-table_Arthropoda_collapsed.qza \
+  --m-metadata-file fwmetadata_merged.txt \
+  --p-min-depth 5000 \
+  --p-max-depth 200000 \
+  --o-visualization hbalpha-rarefaction-500-20000
+  ```
+  ```
+cp -r /workdir/rpg79/kcmerged-table_Arthropoda_collapsed.qza /home/rpg79
+cp -r /workdir/rpg79/kcalpha-rarefaction-5000-100000.qzv /home/rpg79
+cp -r /workdir/rpg79/hbmerged-table_Arthropoda_collapsed.qza /home/rpg79
+cp -r /workdir/rpg79/hbalpha-rarefaction-5000-100000.qzv /home/rpg79
+
+```
+
+#moving forward with just KC, as it won out in my head to head BLAST test 
+
+#Rarefy, im starting at 20k reads because its close to gemmas 23k in her hubbard brook workbook and the alpha rarefaction curves level out by then on mine
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table rarefy \
+  --i-table kcmerged-table_Arthropoda_collapsed7.qza \
+  --p-sampling-depth 20000 \
+  --o-rarefied-table kctablecollapsed7_rarefied20000.qza
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot \
+  --i-table kctablecollapsed7_rarefied20000.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --m-metadata-file fwmetadata_merged.txt \
+  --o-visualization kcbarplot_rarefied20000.qzv
+```
+
+ran into an error here: feature IDs in table are not present in taxonomy.
+
+trying a fix:
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table filter-features \
+  --i-table kctablecollapsed7_rarefied20000.qza \
+  --m-metadata-file kctaxonomy.qza \
+  --o-filtered-table kctablecollapsed7_idfiltered_rarefied20000.qza
+  
+  ```
+fix didnt work, and made an empty table. 
+trying to rarefy WITHOUT collapsing now
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table rarefy \
+  --i-table kctable_Arthropoda.qza \
+  --p-sampling-depth 20000 \
+  --o-rarefied-table kctable_arthropoda_rarefied20000.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot \
+  --i-table kctable_arthropoda_rarefied20000.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --m-metadata-file fwmetadata_merged.txt \
+  --o-visualization kcbarplot_arthropoda_rarefied20000.qzv
+  
+```
+
+this worked... talk to gemma about getting it done with a collapsed table though.
+
+for now...
+```
+cp -r /workdir/rpg79/kctable_arthropoda_rarefied20000.qza /home/rpg79
+
+cp -r /workdir/rpg79/kcbarplot_arthropoda_rarefied20000.qzv /home/rpg79
+```
+now collapse the rarefied table and visualize again
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kctable_arthropoda_rarefied20000.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 7 \
+  --o-collapsed-table kcmerged-table_Arthropoda_collapsed7rarefied.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot \
+  --i-table kcmerged-table_Arthropoda_collapsed7rarefied.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --m-metadata-file fwmetadata_merged.txt \
+  --o-visualization kcmerged-table_Arthropoda_collapsed7rarefied.qzv
+  
+```
+  
+again at 130,000
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table rarefy \
+  --i-table kctable_Arthropoda.qza \
+  --p-sampling-depth 130000 \
+  --o-rarefied-table kctable_arthropoda_rarefied130000.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kctable_arthropoda_rarefied130000.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 7 \
+  --o-collapsed-table kcmerged-table_Arthropoda_collapsed7rarefied13k.qza
+  
+```
+
+go back before rarafaction and remove insecta and arthropoda 
+```
+cp -r /home/rpg79/merged-table.qza /workdir/rpg79
+
+cp -r /home/rpg79/kctaxonomy.qza /workdir/rpg79
+
+cp -r /home/rpg79/fwmetadata_merged.txt /workdir/rpg79
+```
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa filter-table --i-table merged-table.qza --i-taxonomy kctaxonomy.qza --p-include "Arthropoda;c__Arachnida;o","Arthropoda;c__Insecta;o","Arthropoda;c__Collembola;o"  --o-filtered-table kctable_Arthropodafiltered.qza &
+
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-rarefaction \
+  --i-table kctable_Arthropodafiltered.qza \
+  --m-metadata-file fwmetadata_merged.txt \
+  --p-min-depth 5000 \
+  --p-max-depth 200000 \
+  --o-visualization kcfilteredalpha-rarefaction-5000-200000
+  
+```
+```
+  cp -r /workdir/rpg79/kcfilteredalpha-rarefaction-5000-200000.qzv /home/rpg79
+
+cp -r /workdir/rpg79/kctable_Arthropodafiltered.qza /home/rpg79
+
+```
+now re-rarefy and collapse
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table rarefy \
+  --i-table kctable_Arthropodafiltered.qza \
+  --p-sampling-depth 130000 \
+  --o-rarefied-table kctable_arthropodafiltered_rarefied130000.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kctable_arthropodafiltered_rarefied130000.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 7 \
+  --o-collapsed-table kctable_Arthropodafiltered_collapsed7rarefied13k.qza
+  ```
+  
+  ALPHA DIVERSITY (SHANNON)
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha \
+  --i-table kctable_arthropodafiltered_rarefied130000.qza \
+  --p-metric shannon \
+  --o-alpha-diversity shannon_kctable_130000.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannon_kctable_130000.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --o-visualization shannon_kctable_130000_significance.qza
+  ```
+  again with COLLAPSED data
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha \
+  --i-table kctable_Arthropodafiltered_collapsed7rarefied13k.qza \
+  --p-metric shannon \
+  --o-alpha-diversity shannon_kctablecollapsed_13k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannon_kctablecollapsed_13k.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --o-visualization shannon_kctablecollapsed_130k_significance.qzv
+  ```
+  
+  BETA DIVERSITY
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table kctable_arthropodafiltered_rarefied130000.qza \
+  --p-metric jaccard \
+  --p-n-jobs 4 \
+  --o-distance-matrix jaccardmatrix_kctable_arthropodafiltered_130000.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity pcoa \
+  --i-distance-matrix jaccardmatrix_kctable_arthropodafiltered_130000.qza \
+  --o-pcoa pcoa_kctable_arthropodafiltered_130000.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime emperor plot \
+  --i-pcoa pcoa_kctable_arthropodafiltered_130000.qza \
+    --m-metadata-file fwmetadata_merged.txt \
+    --o-visualization emperorplot_kctable_arthropodafiltered_130000.qza
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix jaccardmatrix_kctable_arthropodafiltered_130000.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization species_jaccard-significance.qzv
+    ```
+  Beta diversity, COLLAPSED to species 
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table kctable_Arthropodafiltered_collapsed7rarefied13k.qza \
+  --p-metric jaccard \
+  --p-n-jobs 4 \
+  --o-distance-matrix jaccardmatrix_kctablecollapsed_arthropodafiltered_130k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity pcoa \
+  --i-distance-matrix jaccardmatrix_kctablecollapsed_arthropodafiltered_130k.qza \
+  --o-pcoa pcoa_kctablecollapsed_arthropodafiltered_130k.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime emperor plot \
+  --i-pcoa pcoa_kctablecollapsed_arthropodafiltered_130k.qza \
+    --m-metadata-file fwmetadata_merged.txt \
+    --o-visualization emperorplot_kctablecollapsed_arthropodafiltered_130k.qzv
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix jaccardmatrix_kctablecollapsed_arthropodafiltered_130k.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization species_jaccard-significancecollapsed.qzv
+    ```
+
+```
+  cp -r /workdir/rpg79/pcoa_kctable_arthropodafiltered_130000.qza /home/rpg79
+
+cp -r /workdir/rpg79/emperorplot_kctable_arthropodafiltered_130000.qza.qzv /home/rpg79
+
+cp -r /workdir/rpg79/shannon_kctable_130000.qza /home/rpg79
+
+cp -r /workdir/rpg79/shannon_kctable_130000_significance.qza.qzv /home/rpg79
+
+cp -r /workdir/rpg79/species_jaccard-significance.qzv /home/rpg79
+
+  cp -r /workdir/rpg79/pcoa_kctablecollapsed_arthropodafiltered_130k.qza /home/rpg79
+
+cp -r /workdir/rpg79/emperorplot_kctablecollapsed_arthropodafiltered_130k.qzv /home/rpg79
+
+cp -r /workdir/rpg79/shannon_kctablecollapsed_13k.qza /home/rpg79
+
+cp -r /workdir/rpg79/shannon_kctablecollapsed_130k_significance.qzv /home/rpg79
+
+cp -r /workdir/rpg79/species_jaccard-significancecollapsed.qzv /home/rpg79
+```
+
+Next step: re do the alpha and beta diversities but collapsed down to family and order levels. 
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kctable_arthropodafiltered_rarefied130000.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 4 \
+  --o-collapsed-table kctable_Arthropodafiltered_collapsed4rarefied130k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kctable_arthropodafiltered_rarefied130000.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 5 \
+  --o-collapsed-table kctable_Arthropodafiltered_collapsed5rarefied130k.qza
+  ```
+  
+ORDER
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha \
+  --i-table kctable_Arthropodafiltered_collapsed4rarefied130k.qza \
+  --p-metric shannon \
+  --o-alpha-diversity shannon_kctable_order_130k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannon_kctable_order_130k.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --o-visualization shannon_kctable_order_130k_significance.qzv
+  
+  apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table kctable_Arthropodafiltered_collapsed4rarefied130k.qza \
+  --p-metric jaccard \
+  --p-n-jobs 4 \
+  --o-distance-matrix jaccardmatrix_kctablecollapsed4_arthropodafiltered_130k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity pcoa \
+  --i-distance-matrix jaccardmatrix_kctablecollapsed4_arthropodafiltered_130k.qza \
+  --o-pcoa pcoa_kctablecollapsed4_arthropodafiltered_130k.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime emperor plot \
+  --i-pcoa pcoa_kctablecollapsed4_arthropodafiltered_130k.qza \
+    --m-metadata-file fwmetadata_merged.txt \
+    --o-visualization emperorplot_kctablecollapsed4_arthropodafiltered_130k.qzv
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix jaccardmatrix_kctablecollapsed4_arthropodafiltered_130k.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization species_jaccard-significancecollapsed4.qzv
+
+  cp -r /workdir/rpg79/shannon_kctable_order_130k.qza /home/rpg79
+
+cp -r /workdir/rpg79/shannon_kctable_order_130k_significance.qzv /home/rpg79
+
+cp -r /workdir/rpg79/jaccardmatrix_kctablecollapsed4_arthropodafiltered_130k.qza /home/rpg79
+
+cp -r /workdir/rpg79/pcoa_kctablecollapsed4_arthropodafiltered_130k.qza /home/rpg79
+
+cp -r /workdir/rpg79/emperorplot_kctablecollapsed4_arthropodafiltered_130k.qzv /home/rpg79
+
+cp -r /workdir/rpg79/species_jaccard-significancecollapsed4.qzv /home/rpg79
+```
+
+FAMILY
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha \
+  --i-table kctable_Arthropodafiltered_collapsed5rarefied130k.qza \
+  --p-metric shannon \
+  --o-alpha-diversity shannon_kctable_family_130k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannon_kctable_family_130k.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --o-visualization shannon_kctable_family_130k_significance.qzv
+  
+  apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table kctable_Arthropodafiltered_collapsed5rarefied130k.qza \
+  --p-metric jaccard \
+  --p-n-jobs 4 \
+  --o-distance-matrix jaccardmatrix_kctablecollapsed5_arthropodafiltered_130k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity pcoa \
+  --i-distance-matrix jaccardmatrix_kctablecollapsed5_arthropodafiltered_130k.qza \
+  --o-pcoa pcoa_kctablecollapsed5_arthropodafiltered_130k.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime emperor plot \
+  --i-pcoa pcoa_kctablecollapsed5_arthropodafiltered_130k.qza \
+    --m-metadata-file fwmetadata_merged.txt \
+    --o-visualization emperorplot_kctablecollapsed5_arthropodafiltered_130k.qzv
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix jaccardmatrix_kctablecollapsed5_arthropodafiltered_130k.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization species_jaccard-significancecollapsed5.qzv
+  
+     cp -r /workdir/rpg79/shannon_kctable_family_130k.qza /home/rpg79
+
+cp -r /workdir/rpg79/shannon_kctable_family_130k_significance.qzv /home/rpg79
+
+cp -r /workdir/rpg79/jaccardmatrix_kctablecollapsed5_arthropodafiltered_130k.qza /home/rpg79
+
+cp -r /workdir/rpg79/pcoa_kctablecollapsed5_arthropodafiltered_130k.qza /home/rpg79
+
+cp -r /workdir/rpg79/emperorplot_kctablecollapsed5_arthropodafiltered_130k.qzv /home/rpg79
+
+cp -r /workdir/rpg79/species_jaccard-significancecollapsed5.qzv /home/rpg79
+```
+
+OK, NEED TO GO BACK AND REMOVE THE MOCK AND BLANKS., RE FILTER kctable_Arthropodafiltered.qza TO REMOVE BLANK AND NA
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table filter-samples \
+  --i-table kctable_Arthropodafiltered.qza \
+  --m-metadata-file fwmetadata_merged.txt \
+  --p-where 'species IN ("r", "v", "s")' \
+  --o-filtered-table kc_arthrorvs_filtered.qza
+```
+
+re-rarefy and collapse
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table rarefy \
+  --i-table kc_arthrorvs_filtered.qza \
+  --p-sampling-depth 130000 \
+  --o-rarefied-table kcarthrorvsrare130k.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kcarthrorvsrare130k.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 7 \
+  --o-collapsed-table kcarthrorvsrare130kcollapse7.qza
+  
+  apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kcarthrorvsrare130k.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 5 \
+  --o-collapsed-table kcarthrorvsrare130kcollapse5.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa collapse \
+  --i-table kcarthrorvsrare130k.qza \
+  --i-taxonomy kctaxonomy.qza \
+  --p-level 4 \
+  --o-collapsed-table kcarthrorvsrare130kcollapse4.qza
+  ```
+
+Alpha and beta diversity (7)
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha \
+  --i-table kcarthrorvsrare130kcollapse7.qza \
+  --p-metric shannon \
+  --o-alpha-diversity shannnon_kcarthrorvs7.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannnon_kcarthrorvs7.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --o-visualization shannnon_kcarthrorvs7_significance.qzv
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table kcarthrorvsrare130kcollapse7.qza \
+  --p-metric jaccard \
+  --p-n-jobs 4 \
+  --o-distance-matrix jaccardmatrix_kcarthrorvs7.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity pcoa \
+  --i-distance-matrix jaccardmatrix_kcarthrorvs7.qza \
+  --o-pcoa pcoa_kcarthrorvs7.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime emperor plot \
+  --i-pcoa pcoa_kcarthrorvs7.qza \
+    --m-metadata-file fwmetadata_merged.txt \
+    --o-visualization emperorplot_kcarthrorvs7.qzv
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix jaccardmatrix_kcarthrorvs7.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization species_jaccard_significance_kcarthrorvs7.qzv
+  
+cp -r /workdir/rpg79/shannnon_kcarthrorvs7.qza /home/rpg79
+
+cp -r /workdir/rpg79/shannnon_kcarthrorvs7_significance.qzv /home/rpg79
+
+cp -r /workdir/rpg79/jaccardmatrix_kcarthrorvs7.qza /home/rpg79
+
+cp -r /workdir/rpg79/pcoa_kcarthrorvs7.qza /home/rpg79
+
+cp -r /workdir/rpg79/emperorplot_kcarthrorvs7.qzv /home/rpg79
+
+cp -r /workdir/rpg79/species_jaccard_significance_kcarthrorvs7.qzv /home/rpg79
+```
+
+Alpha and beta diversity (5)
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha \
+  --i-table kcarthrorvsrare130kcollapse5.qza \
+  --p-metric shannon \
+  --o-alpha-diversity shannnon_kcarthrorvs5.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannnon_kcarthrorvs5.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --o-visualization shannnon_kcarthrorvs5_significance.qzv
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table kcarthrorvsrare130kcollapse5.qza \
+  --p-metric jaccard \
+  --p-n-jobs 4 \
+  --o-distance-matrix jaccardmatrix_kcarthrorvs5.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity pcoa \
+  --i-distance-matrix jaccardmatrix_kcarthrorvs5.qza \
+  --o-pcoa pcoa_kcarthrorvs5.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime emperor plot \
+  --i-pcoa pcoa_kcarthrorvs5.qza \
+    --m-metadata-file fwmetadata_merged.txt \
+    --o-visualization emperorplot_kcarthrorvs5.qzv
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix jaccardmatrix_kcarthrorvs5.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization family_jaccard_significance_kcarthrorvs5.qzv
+
+cp -r /workdir/rpg79/shannnon_kcarthrorvs5.qza /home/rpg79
+
+cp -r /workdir/rpg79/shannnon_kcarthrorvs5_significance.qzv /home/rpg79
+
+cp -r /workdir/rpg79/jaccardmatrix_kcarthrorvs5.qza /home/rpg79
+
+cp -r /workdir/rpg79/pcoa_kcarthrorvs5.qza /home/rpg79
+
+cp -r /workdir/rpg79/emperorplot_kcarthrorvs5.qzv /home/rpg79
+
+cp -r /workdir/rpg79/family_jaccard_significance_kcarthrorvs5.qzv /home/rpg79
+```
+
+Alpha and beta diversity (4)
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha \
+  --i-table kcarthrorvsrare130kcollapse4.qza \
+  --p-metric shannon \
+  --o-alpha-diversity shannnon_kcarthrorvs4.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannnon_kcarthrorvs4.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --o-visualization shannnon_kcarthrorvs4_significance.qzv
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table kcarthrorvsrare130kcollapse4.qza \
+  --p-metric jaccard \
+  --p-n-jobs 4 \
+  --o-distance-matrix jaccardmatrix_kcarthrorvs4.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity pcoa \
+  --i-distance-matrix jaccardmatrix_kcarthrorvs4.qza \
+  --o-pcoa pcoa_kcarthrorvs4.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime emperor plot \
+  --i-pcoa pcoa_kcarthrorvs4.qza \
+    --m-metadata-file fwmetadata_merged.txt \
+    --o-visualization emperorplot_kcarthrorvs4.qzv
+    
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix jaccardmatrix_kcarthrorvs4.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization family_jaccard_significance_kcarthrorvs4.qzv
+  
+cp -r /workdir/rpg79/shannnon_kcarthrorvs4.qza /home/rpg79
+
+cp -r /workdir/rpg79/shannnon_kcarthrorvs4_significance.qzv /home/rpg79
+
+cp -r /workdir/rpg79/jaccardmatrix_kcarthrorvs4.qza /home/rpg79
+
+cp -r /workdir/rpg79/pcoa_kcarthrorvs4.qza /home/rpg79
+
+cp -r /workdir/rpg79/emperorplot_kcarthrorvs4.qza /home/rpg79
+
+cp -r /workdir/rpg79/order_jaccard_significance_kcarthrorvs4.qzv /home/rpg79
+```
+

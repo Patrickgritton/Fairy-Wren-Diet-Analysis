@@ -1,0 +1,71 @@
+---
+title: "Fairywren_Tutorial_10/28/25"
+author: "Patrick Gritton"
+format: html
+editor: visual
+---
+
+## Qiime2 Fairy Wren Diet Analysis
+
+## Introduction
+
+This tutorial is a work in progress project notebook for my honor's thesis on fecal metabarcoding of fairy wren diet samples. I am working off of my previous rmarkdown projects from my microbiome analysis, the Qiime 2 moving picture tutorial, and Tasos Stephanou's "qiime_orchard_fecal_tutorial.md" tutorial.
+
+This analysis will require: Rmarkdown, putty, filezilla, sublime, cisco secure client (WSL, Python)
+
+-   Rmarkdown: For note taking and version control
+
+-   putty: for connecting to the cluster
+
+-   filezilla: for moving files on and off the cluster
+
+-   sublime: for text editing
+
+-   Cisco secure client: for enabling cornell VPN to have access to cluster outside of campus
+
+-   (Optional): WSL and python for testing out the pipeline on a smaller subset of reads off of the cluster
+
+## Lets get started
+
+### Connecting to the VPN (ONLY NEEDED OFF CAMPUS)
+
+1.  Open Cisco secure client
+
+2.  type in cuvpn.cuvpn.cornell.edu
+
+3.  click connect
+
+### Connecting to the cluster
+
+1.  Open Putty
+
+2.  Fill in the following information
+
+    1.  Host name (or IP address): cbsulogin.biohpc.cornell.edu
+
+    2.  Port: 22
+
+    3.  Connection type: SSH
+
+3.  Click open
+
+4.  Sign in
+
+    1.  Username: RPG79
+
+    2.  Password: Rpg79biohpc28503! (I need to make this shorter)
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).

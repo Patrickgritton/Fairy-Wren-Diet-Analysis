@@ -1,0 +1,146 @@
+---
+title: "11-10-cluster"
+format: html
+editor: visual
+---
+
+## Cluster with bronwyn!
+
+Running cluster on machine cbsumm09 remember to cancel reservation when done 
+
+cbsulogin.biohpc.cornell.edu -> cbsumm09
+
+first thing to do is to copy data toworking machine
+(go to working machine, make a folder, copy data into it)
+
+```
+cd /workdir
+
+mkdir rpg79
+
+```
+
+copy reads into directory
+
+```
+cp -r /home/rpg79/FWrawreads /workdir/rpg79 &
+
+top
+
+```
+top allows you to check that a cp command is running (q to leave)
+also htop is human readable version 
+
+ls -l for size of files 
+
+make a directory for first cluster runthrough 
+
+``` mkdir cluster1
+```
+Activate qiime 
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime info
+```
+
+import
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'  --input-path  manifest1.txt    --input-format PairedEndFastqManifestPhred33V2  --output-path demux_plate1.qza
+
+```
+
+bronwyn and I agree that we should put 
+"
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif
+"
+
+at the beginnig f each command, it seems. 
+
+neeed to attempt
+
+connecting to filezilla
+
+1) open filezilla
+
+2) Host = sftp://cbsumm09.biohpc.cornell.edu
+
+3)username rpg79
+
+4) Password is biohpcpassword
+
+5) port = 22
+
+can access workdir from root (/)
+/workdir/rpg79
+
+new computer as of 11/12: cbsumma01
+
+visualize demux 
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime demux summarize \
+--i-data demux_plate1.qza \
+--o-visualization demux_plate1.qzv 
+```
+
+```
+cp -r /workdir/rpg79/demux_plate.qzv /home/rpg79/ &
+```
+
+11/24/25
+
+```
+cp -r /home/rpg79/demux_plate1.qza /workdir/rpg79/ &
+```
+(for copy paste)
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime
+```
+trim 3 end
+```        
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences demux_plate1.qza \
+    --p-adapter-f GGATTTGGAAATTGATTAGTWCC \
+    --p-adapter-r CCAATATCTTTATGATTTGTTGACC \
+    --o-trimmed-sequences trimd_plate1.qza \
+    --verbose > cutadapt_out_plate1.txt
+```
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime demux summarize \
+--i-data trimd_plate1.qza \
+--o-visualization trimd_plate1.qzv
+```
+```
+grep "Total written (filtered):" cutadapt_out_plate1.txt
+```
+trim 5 end
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences trimd_plate1.qza \
+    --p-front-f GGTCAACAAATCATAAAGATATTGG \
+    --p-front-r GGWACTAATCAATTTCCAAATCC \
+    --o-trimmed-sequences trimd2_plate1.qza \
+    --verbose > cutadapt_out_2plate1.txt
+```
+
+```
+grep "Total written (filtered):" cutadapt_out2_plate1.txt
+```
+for some reason, very few reads are passing through this second trim step. 0.1% for most samples its bizzarre
+
+im gonna move past it for now and come back with gemma and take a look at it,
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime demux summarize \
+--i-data trimd_plate1.qza\
+--o-visualization trimd2_plate1.qzv
+```
+denoise
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime dada2 denoise-paired --i-demultiplexed-seqs trimd2_plate1.qza --p-trunc-len-f 125 --p-trunc-len-r 125 --p-trim-left-f 0 --p-trim-left-r 0 --p-min-overlap 20 --p-n-threads 12 --o-representative-sequences rep-seqs_plate1 --o-table table_plate1 --o-denoising-stats denoise_plate1 --o-base-transition-stats basetransitiontrimd2plate1.qza
+```
+view rep seqs
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table tabulate-seqs --i-data rep-seqs_plate1.qza --o-visualization rep-seqs_Plate1.qzv
+```

@@ -1,0 +1,26 @@
+---
+title: "6 sample practice 12/3/25"
+format: html
+editor: visual
+---
+
+## running just the six samples with hb classifier on cluster
+
+activate qiime 
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime info
+```
+```
+mkdir sixsamp
+```
+
+run:
+ ```     
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-classifier classify-sklearn --i-classifier hbclassifier.qza --i-reads rep-seqs_plate6.qza --o-classification hbtaxonomy.qza
+```
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime metadata tabulate --m-input-file hbtaxonomy.qza --o-visualization hbtaxonomy.qzv
+```
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table table_plate1.qza --i-taxonomy hbtaxonomy.qza --m-metadata-file fwpracticemetadata.txt --o-visualization hbbarplot_before_filtering.qzv
+```

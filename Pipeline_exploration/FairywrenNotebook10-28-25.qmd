@@ -1,0 +1,214 @@
+---
+title: "FairywrenNotebook10/28/25"
+format: html
+editor: visual
+---
+
+## Qiime2 pipeline practice using WSL
+
+Mostly so I can nail the pipeline commands before I try and use the cluster
+
+### Open WSL on computer
+
+```         
+wsl --install
+```
+
+(because the normal wsl open command doesnt work)
+
+### activate qiime2 environment
+
+```         
+
+conda activate qiime2
+```
+
+### new directory
+
+```         
+mkdir fairywrenpractice
+
+cd fairywrenpractice
+```
+
+### unable to upload reads to github, so for now I will manually move them to the directory using file explorer
+
+### Create text file:
+
+You will first need to make a wrangled data document This document, created in Excel and then converted to .txt will have headers of sample-id, forward-absolute-filepath, reverse-absolute-filepath Utilize concatonate in Excel to make file paths. Make sure no values are numeric Ensure that each sample ID is unique Ensure the file path is correct; observe nodes and folders carefully
+
+### import data
+
+### stuck here for 10/28/25: unabl to run the below command, error:There was a problem importing fwpracticewrangled1.1.txt:
+
+fwpracticewrangled1.1.txt is not a(n) PairedEndFastqManifestPhred33V2 file:
+
+Filepath on line 1 and column "forward-absolute-filepath" could not be found (\$home\patri\fairywrenpractice\subsetreads\Plate01_A01_MOCK1_10484089_237GWLLT4_L8_R1.fastq\Plate01_A01_MOCK1_10484089_237GWLLT4_L8_R1.fastq) for sample "P1A1".
+
+```         
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'  --input-path  fwpracticewrangled1.txt    --input-format PairedEndFastqManifestPhred33V2  --output-path demux_plate1.qza
+```
+
+### 10/29/25 meeting with gemma and jordan.
+
+Modified fwpracticewrangled1 to contain forward slashes in file paths and a single forward slash at the beginning, which worked!
+
+###summarize the demux file
+
+```         
+qiime demux summarize \
+--i-data demux_plate1.qza \
+--o-visualization demux_plate1.qzv
+```
+
+2.  Trim primers using cutadapt The primer sequences are:
+
+ANML_F GGTCAACAAATCATAAAGATATTGG ANML_R GGWACTAATCAATTTCCAAATCC
+
+Trim 3' ends first
+
+F primer reverse complement: CCAATATCTTTATGATTTGTTGACC R primer reverse complement: GGATTTGGAAATTGATTAGTWCC
+
+```        
+  qiime cutadapt trim-paired \
+    --i-demultiplexed-sequences demux_plate1.qza \
+    --p-adapter-f GGATTTGGAAATTGATTAGTWCC \
+    --p-adapter-r CCAATATCTTTATGATTTGTTGACC \
+    --o-trimmed-sequences trimd_plate1.qza \
+    --verbose > cutadapt_out_plate1.txt
+```
+done
+To see how much data passed the filter for each sample:
+
+grep "Total written (filtered):" cutadapt_out_Plate1.txt 
+grep "Total written (filtered):" cutadapt_out_Plate2.txt
+About 82% seems to have passed the filters for each sample.
+
+Make new visualisations to see how many sequences are left and their quality scores.
+```
+
+grep "Total written (filtered):" cutadapt_out_plate1.txt"
+
+```         
+#99% ish made it thru filter
+```
+
+qiime demux summarize\
+--i-data trimd_plate1.qza\
+--o-visualization trimd_plate1.qzv
+
+```         
+###Trim 5` end of reads
+```
+
+qiime cutadapt trim-paired\
+--i-demultiplexed-sequences trimd_plate1.qza\
+--p-front-f GGTCAACAAATCATAAAGATATTGG \
+--p-front-r GGWACTAATCAATTTCCAAATCC \
+--o-trimmed-sequences trimd2_plate1.qza \
+--verbose \> cutadapt_out2_plate1.txt
+
+```         
+```
+
+grep "Total written (filtered):" cutadapt_out2_plate1.txt
+
+```         
+84% ish made it through
+
+visualize
+```
+
+qiime demux summarize\
+--i-data trimd_plate1.qza\
+--o-visualization trimd2_plate1.qzv
+
+```         
+
+
+done 
+
+### NOTE: for denoising, your plates were on seperate runs, so do all of these steps up to the denoising step before combining them.
+for this practice, I am going to ignore this advice, but remember for the real one to do all of the steps including denoising seperate and then combine.
+commands for merging are in gemmas hubbard brook repo
+
+##denoising
+```
+
+qiime dada2 denoise-paired --i-demultiplexed-seqs trimd2_plate1.qza --p-trunc-len-f 125 --p-trunc-len-r 125 --p-trim-left-f 0 --p-trim-left-r 0 --p-min-overlap 20 --p-n-threads 12 --o-representative-sequences rep-seqs_plate1 --o-table table_plate1 --o-denoising-stats denoise_plate1
+
+```         
+#View rep-seqs and table
+```
+
+qiime feature-table tabulate-seqs --i-data rep-seqs_plate1.qza --o-visualization rep-seqs_Plate1
+
+qiime feature-table summarize --i-table table_plate1.qza --m-sample-metadata-file fecal_sampling_full_metadata.txt --o-visualization table_plate1
+
+```         
+#failed, I forgot to make the metadata, oops.
+lets go
+
+#tabulate data to see sample names and have info to make a metadata file
+```
+
+qiime metadata tabulate--m-input-file denoise_plate1.qza--o-visualization denoise_plate1.qzv
+
+```         
+
+#make metadata fila according to the online guide found at https://use.qiime2.org/en/latest/references/metadata.html
+
+#View rep-seqs and table
+```
+
+qiime feature-table tabulate-seqs --i-data rep-seqs_plate1.qza --o-visualization rep-seqs_Plate1
+
+qiime feature-table summarize --i-table table_plate1.qza --m-sample-metadata-file fwpracticemetadata.txt --o-visualization table_plate1
+
+```         
+
+#assign taxonomy
+```
+
+qiime feature-classifier classify-sklearn --i-classifier nb_anml_fairy_wren_classifier_20251030.qza --i-reads rep-seqs_plate1.qza --o-classification taxonomy.qza &
+
+qiime metadata tabulate --m-input-file taxonomy.qza --o-visualization taxonomy.qzv
+
+qiime taxa barplot --i-table table_plate1.qza --i-taxonomy taxonomy.qza --m-metadata-file fwpracticemetadata.txt --o-visualization barplot_before_filtering.qzv
+
+```     
+hbpractice(11/25/25)
+```
+qiime feature-classifier classify-sklearn --i-classifier hbclassifier.qza --i-reads rep-seqs_plate1.qza --o-classification hbtaxonomy.qza &
+
+qiime metadata tabulate --m-input-file hbtaxonomy.qza --o-visualization hbtaxonomy.qzv
+
+qiime taxa barplot --i-table table_plate1.qza --i-taxonomy hbtaxonomy.qza --m-metadata-file fwpracticemetadata.txt --o-visualization hbbarplot_before_filtering.qzv
+```
+
+#Remove non arthropod reads
+```
+
+qiime taxa filter-table --i-table table_plate1.qza --i-taxonomy taxonomy.qza --p-include Arthropoda --o-filtered-table table_Arthropoda.qza &
+
+qiime feature-table summarize --i-table table_Arthropoda.qza --m-sample-metadata-file fwpracticemetadata.txt --o-visualization table_Arthropoda.qzv
+
+qiime taxa barplot --i-table table_Arthropoda.qza --i-taxonomy taxonomy.qza --m-metadata-file fwpracticemetadata.txt --o-visualization barplot_arthropoda.qzv
+
+```         
+
+#calculate alpha rarefaction curves
+
+base code:
+```
+
+qiime taxa collapse --i-table table_Arthropoda.qza --i-taxonomy taxonomy.qza --p-level 5 --o-collapsed-table table_Arthropoda_collapsed_family.qza
+
+```         
+
+edited code for 3000 bases to include all 6 samples
+
+gemma suggests 20,000
+```
+
+qiime diversity alpha-rarefaction --i-table table_Arthropoda_collapsed.qza --m-metadata-file fwpracticemetadata.txt --p-min-depth 500 --p-max-depth 3000 --o-visualization alpha-rarefaction-500-3000 

@@ -1,0 +1,17 @@
+---
+title: "meeting 11/5/2025"
+format: html
+editor: visual
+---
+
+## Meeting 11/5/2025
+
+gemma jordan and I met today to discuss my pipeline practice i did last week. We looked at the barplots and saw that the mocks are unidentified (makes sense, as I used an aussie classifier from katherine) and that some of the other samples are not well identified. In response, were going to re do it with the hubbard brook classifier just as a test. 
+
+```
+qiime feature-classifier classify-sklearn \--i-classifier hbclassifier.qza \--i-reads rep-seqs_plate1.qza \--o-classification hbtaxonomy.qza &
+
+qiime metadata tabulate \--m-input-file hbtaxonomy.qza \--o-visualization hbtaxonomy.qzv
+
+qiime taxa barplot \--i-table table_plate1.qza \--i-taxonomy hbtaxonomy.qza \--m-metadata-file fwpracticemetadata.txt \--o-visualization hbbarplot_before_filtering.qzv
+```
