@@ -1,0 +1,8 @@
+sampleid	date	species	sex	substrate
+#q2:types	categorical	categorical	categorical	categorical
+p1a1	1/1/1999	mock	n	n
+p1a2	8/1/2024	rbfw	f	pbag
+p1a3	8/6/2024	rbfw	f	skin
+p2a1	1/1/1999	mock	n	n
+p2a2	8/26/2024	vafw	u	hat
+p2a3	8/30/2024	vafw	m	pbag
