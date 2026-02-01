@@ -204,33 +204,35 @@ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amp
 copy the trimmed plates and the visualizations over to home
 
 ```         
-cp -r /workdir/rpg79/sftrimd2_plate1.qza /home/rpg79 
-cp -r /workdir/rpg79/sftrimd2_plate1.qzv /home/rpg79 
- cp -r /workdir/rpg79/sftrimd2_plate2.qza /home/rpg79
- cp -r /workdir/rpg79/sftrimd2_plate2.qzv /home/rpg79 
+cp -r /workdir/rpg79sf/sftrimd_plate1.qza /home/rpg79 
+cp -r /workdir/rpg79sf/sftrimd_plate2.qza /home/rpg79 
+cp -r /workdir/rpg79sf/sftrimd2_plate1.qza /home/rpg79
+cp -r /workdir/rpg79sf/sftrimd2_plate2.qza /home/rpg79 
+cp -r /workdir/rpg79sf/sftrimd2_plate1.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sftrimd2_plate2.qzv /home/rpg79
 ```
 
 # 4. Denoise with Dada2
 
 *Now that the reads are trimmed, we use Dada2 to remove the noise, i.e. use some statistical magic to remove low quality reads and errors, leaving us with just biologically true sequences.*
 
-Denoising with a trunc length of 125
+Denoising with a trunc length of 125 (around where the quality drops on the visualized trimmed plates)
 
 ```         
 apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime dada2 denoise-paired --i-demultiplexed-seqs sftrimd2_plate1.qza --p-trunc-len-f 125 --p-trunc-len-r 125 --p-trim-left-f 0 --p-trim-left-r 0 --p-min-overlap 20 --p-n-threads 12 --o-representative-sequences sfrep-seqs_plate1 --o-table sftable_plate1 --o-denoising-stats sfdenoise_plate1 --o-base-transition-stats sfbasetransitionplate1.qza &
 
-apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime dada2 denoise-paired --i-demultiplexed-seqs sftrimd2_plate2.qza --p-trunc-len-f 125 --p-trunc-len-r 125 --p-trim-left-f 0 --p-trim-left-r 0 --p-min-overlap 20 --p-n-threads 12 --o-representative-sequences sfrep-seqs_plate2 --o-table table_plate2 --o-denoising-stats sfdenoise_plate2 --o-base-transition-stats sfbasetransitionplate2.qza &
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime dada2 denoise-paired --i-demultiplexed-seqs sftrimd2_plate2.qza --p-trunc-len-f 125 --p-trunc-len-r 125 --p-trim-left-f 0 --p-trim-left-r 0 --p-min-overlap 20 --p-n-threads 12 --o-representative-sequences sfrep-seqs_plate2 --o-table sftable_plate2 --o-denoising-stats sfdenoise_plate2 --o-base-transition-stats sfbasetransitionplate2.qza &
 ```
 
 Copy over the litany of files these commands create
 
 ```         
-cp -r /workdir/rpg79/sfrep-seqs_plate1.qza /home/rpg79
-cp -r /workdir/rpg79/sftable_plate1.qza /home/rpg79
-cp -r /workdir/rpg79/sfbasetransitionplate1.qza /home/rpg79
-cp -r /workdir/rpg79/sfrep-seqs_plate2.qza /home/rpg79
-cp -r /workdir/rpg79/sftable_plate2.qza /home/rpg79
-cp -r /workdir/rpg79/sfbasetransitionplate2.qza /home/rpg79
+cp -r /workdir/rpg79sf/sfrep-seqs_plate1.qza /home/rpg79
+cp -r /workdir/rpg79sf/sftable_plate1.qza /home/rpg79
+cp -r /workdir/rpg79sf/sfbasetransitionplate1.qza /home/rpg79
+cp -r /workdir/rpg79sf/sfrep-seqs_plate2.qza /home/rpg79
+cp -r /workdir/rpg79sf/sftable_plate2.qza /home/rpg79
+cp -r /workdir/rpg79sf/sfbasetransitionplate2.qza /home/rpg79
 ```
 
 # 5. Merge the plates
@@ -261,8 +263,8 @@ View the rep seqs
 
 ```         
 apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table tabulate-seqs \
-  --i-data merged_rep-seqs.qza \
-  --o-visualization merged_rep-seqs.qzv
+  --i-data sfmerged_rep-seqs.qza \
+  --o-visualization sfmerged_rep-seqs.qzv
 ```
 
 Copy the files over to home
@@ -271,9 +273,10 @@ Copy the files over to home
 cp -r /workdir/rpg79sf/sfmerged-table.qza /home/rpg79
 cp -r /workdir/rpg79sf/sfmerged-table.qzv /home/rpg79
 cp -r /workdir/rpg79sf/sfmerged_rep-seqs.qza /home/rpg79
+cp -r /workdir/rpg79sf/sfmerged_rep-seqs.qzv /home/rpg79
 ```
 
-# 6. Assign taxonomy 
+# 6. Assign taxonomy
 
 *This step takes the DNA sequences and assigns them a taxonomic identity based on a classifier generously made for us by Katherine carbeck.*
 
@@ -285,12 +288,14 @@ cp -r /home/rpg79/nb_anml_fairy_wren_classifier_20251030.qza /workdir/rpg79sf/
 
 Apply classifier
 
+apptainer exec --bind \$PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime tools validate nb_anml_fairy_wren_classifier_20251030.qza
+
 ```         
-apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-classifier classify-sklearn --i-classifier nb_anml_fairy_wren_classifier_20251030.qza --i-reads sfmerged_rep-seqs.qza --o-classification sftaxonomy.qza &
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-classifier classify-sklearn --i-classifier kcclassifier.qza --i-reads sfmerged_rep-seqs.qza --o-classification sftaxonomy.qza &
 
 apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime metadata tabulate --m-input-file sftaxonomy.qza --o-visualization sftaxonomy.qzv
 
-apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table merged-table.qza --i-taxonomy sftaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization sfbarplot_before_filtering.qzv
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table sfmerged-table.qza --i-taxonomy sftaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization sfbarplot_before_filtering.qzv
 ```
 
 Copy files over to home
@@ -311,31 +316,34 @@ Filter out non- arthropod reads first
 ```         
 apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa filter-table --i-table sfmerged-table.qza --i-taxonomy sftaxonomy.qza --p-include Arthropoda --o-filtered-table sf_filtered1.qza &
 
-apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table summarize --i-table sftable_Arthropoda.qza --m-sample-metadata-file fwmetadata_merged.txt --o-visualization sf_filtered1.qzv &
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table summarize --i-table sf_filtered1.qza --m-sample-metadata-file fwmetadata_merged.txt --o-visualization sf_filtered1.qzv &
 
-apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table sftable_Arthropoda.qza --i-taxonomy sftaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization sf_filtered1_barplot.qzv &
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table sf_filtered1.qza --i-taxonomy sftaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization sf_filtered1_barplot.qzv &
 ```
 
 Now, filter out reads that ONLY read "insecta" or "arthropoda" or "collembola" (need to double check with stats people that this is the correct thing to do, but gemma and I think so.
 
 ```         
-apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa filter-table --i-table sfmerged-table.qza --i-taxonomy sftaxonomy.qza --p-include "Arthropoda;c__Arachnida;o","Arthropoda;c__Insecta;o","Arthropoda;c__Collembola;o"  --o-filtered-table sf_filtered2.qza &
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa filter-table --i-table sf_filtered1.qza --i-taxonomy sftaxonomy.qza --p-include "Arthropoda;c__Arachnida;o","Arthropoda;c__Insecta;o","Arthropoda;c__Collembola;o"  --o-filtered-table sf_filtered2.qza &
 ```
 
 Lastly, remove the mocks, blanks, and NA samples
 
 ```         
 apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table filter-samples \
-  --i-table sftable_Arthropodafiltered.qza \
+  --i-table sf_filtered2.qza \
   --m-metadata-file fwmetadata_merged.txt \
   --p-where 'species IN ("r", "v", "s")' \
   --o-filtered-table sf_filtered3.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime taxa barplot --i-table sf_filtered3.qza --i-taxonomy sftaxonomy.qza --m-metadata-file fwmetadata_merged.txt --o-visualization sf_filtered3_barplot.qzv &
 ```
 
 copy the file back over to home
 
 ```         
 cp -r /workdir/rpg79sf/sf_filtered3.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_filtered3_barplot.qzv /home/rpg79
 ```
 
 # 8. Calculate rarefaction curves and rarefy
@@ -436,15 +444,15 @@ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amp
   
 cp -r /workdir/rpg79sf/sf_shannon_order.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_shannon_order_significance.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_shannon_order_significance.qzv /home/rpg79
 
-cp -r /workdir/rpg79/sf_jaccardmatrix_order.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_jaccardmatrix_order.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_pcoa_order.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_pcoa_order.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_emperorplot_order.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_emperorplot_order.qzv /home/rpg79
 
-cp -r /workdir/rpg79/sf_species_jaccard-significance_order.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_species_jaccard-significance_order.qzv /home/rpg79
 ```
 
 family level
@@ -484,15 +492,15 @@ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amp
   
 cp -r /workdir/rpg79sf/sf_shannon_family.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_shannon_family_significance.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_shannon_family_significance.qzv /home/rpg79
 
-cp -r /workdir/rpg79/sf_jaccardmatrix_family.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_jaccardmatrix_family.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_pcoa_family.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_pcoa_family.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_emperorplot_family.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_emperorplot_family.qzv /home/rpg79
 
-cp -r /workdir/rpg79/sf_species_jaccard-significance_family.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_species_jaccard-significance_family.qzv /home/rpg79
 ```
 
 Lastly, species level, just in case
@@ -530,15 +538,46 @@ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amp
   --o-visualization sf_species_jaccard-significance_species.qzv
   
   
-cp -r /workdir/rpg79sf/sf_shannon_order.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_shannon_species.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_shannon_order_significance.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_shannon_species_significance.qzv /home/rpg79
 
-cp -r /workdir/rpg79/sf_jaccardmatrix_order.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_jaccardmatrix_species.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_pcoa_order.qza /home/rpg79
+cp -r /workdir/rpg79sf/sf_pcoa_species.qza /home/rpg79
 
-cp -r /workdir/rpg79/sf_emperorplot_order.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_emperorplot_species.qzv /home/rpg79
 
-cp -r /workdir/rpg79/sf_species_jaccard-significance_order.qzv /home/rpg79
+cp -r /workdir/rpg79sf/sf_species_jaccard-significance_species.qzv /home/rpg79
+```
+
+# 11. Further analyses
+
+FOO (this does nothing oops)
+
+```         
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table relative-frequency \
+  --i-table sf_rarefied130k.qza \
+  --o-relative-frequency-table sf-relative-table.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table summarize --i-table sf_rarefied130k.qza --o-visualization sf_tablefreq.qzv --m-sample-metadata-file fwmetadata_merged.txt
+
+cp -r /workdir/rpg79sf/sf_tablefreq.qzv /home/rpg79
+```
+
+Bray curtis
+
+```         
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta \
+  --i-table sf_collapsed_family.qza \
+  --p-metric braycurtis \
+  --o-distance-matrix sf_family_braycurtis.qza
+  
+ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime diversity beta-group-significance \
+  --i-distance-matrix sf_family_braycurtis.qza \
+  --m-metadata-file fwmetadata_merged.txt  \
+  --m-metadata-column species \
+  --o-visualization sf_family_braycurtis.qzv
+
+cp -r /workdir/rpg79sf/sf_family_braycurtis.qzv /home/rpg79
 ```

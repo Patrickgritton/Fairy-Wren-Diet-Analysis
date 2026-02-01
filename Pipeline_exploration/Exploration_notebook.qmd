@@ -24,7 +24,7 @@ apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amp
 ```
 import plate 2
 ```
-apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'  --input-path  manifest_plate2.txt    --input-format PairedEndFastqManifestPhred33V2  --output-path demux_plate2.qza &
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]'  --input-path  manifest_plate2.txt    --input-format PairedEndFastqManifestPhred33V2  --output-path sfdemux_plate2.qza &
 
 ```
 ```
