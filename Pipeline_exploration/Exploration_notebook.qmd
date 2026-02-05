@@ -827,4 +827,12 @@ cp -r /workdir/rpg79/emperorplot_kcarthrorvs4.qza /home/rpg79
 
 cp -r /workdir/rpg79/order_jaccard_significance_kcarthrorvs4.qzv /home/rpg79
 ```
+some extra analyses
+
+```
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table relative-frequency \
+  --i-table sf_rarefied130k.qza \
+  --o-relative-frequency-table sf-relative-table.qza
+  
+apptainer exec --bind $PWD:/data --pwd /data /programs/qiime2-2025.10/qiime2_amplicon.sif qiime feature-table summarize --i-table sf_rarefied130k.qza --o-visualization sf_tablefreq.qzv --m-sample-metadata-file fwmetadatamerged.txt
 
